@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2024免疫学中間試験 問題集</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>2024免疫学中間試験</h1>
+            <div id="start-screen">
+                <p>問題の表示順を選択してください:</p>
+                <button id="order-btn">順番通りに解く</button>
+                <button id="random-btn">ランダムに解く</button>
+            </div>
+        </header>
+
+        <main id="quiz-screen" style="display: none;">
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+                <span id="progress-text"></span>
+            </div>
+            <div id="question-container">
+                <p id="question-text"></p>
+            </div>
+            <div id="answer-buttons">
+                <button class="answer-btn" data-answer="true">正しい</button>
+                <button class="answer-btn" data-answer="false">誤り</button>
+            </div>
+            <div id="feedback-container" style="display: none;">
+                <div id="feedback-result">
+                    <span id="feedback-icon"></span>
+                    <span id="feedback-message"></span>
+                </div>
+                <div id="feedback-explanation">
+                    <p><strong>解答:</strong> <span id="correct-answer"></span></p>
+                    <p><strong>解説:</strong></p>
+                    <p id="explanation-text"></p>
+                </div>
+                <button id="next-btn" style="display: none;">次の問題へ</button>
+            </div>
+        </main>
+
+        <footer id="result-screen" style="display: none;">
+            <h2>結果</h2>
+            <p id="score-text"></p>
+            <button id="retry-btn">もう一度解く</button>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

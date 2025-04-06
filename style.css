@@ -1,0 +1,242 @@
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #f5f5f5;
+    --correct-color: #4caf50;
+    --incorrect-color: #f44336;
+    --text-color: #333;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* 上寄せに変更 */
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+}
+
+header h1 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+#start-screen p {
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+#start-screen button,
+#next-btn,
+#retry-btn,
+.answer-btn {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    margin: 5px;
+}
+
+#start-screen button:hover,
+#next-btn:hover,
+#retry-btn:hover,
+.answer-btn:hover {
+    background-color: #357abd;
+}
+
+#start-screen button:active,
+#next-btn:active,
+#retry-btn:active,
+.answer-btn:active {
+    transform: scale(0.98);
+}
+
+/* プログレスバー */
+#progress-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    overflow: hidden; /* 内側のバーがはみ出さないように */
+    position: relative; /* テキストを重ねるため */
+    height: 25px; /* 高さを指定 */
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%; /* 初期値 */
+    background-color: var(--primary-color);
+    transition: width 0.5s ease-in-out;
+    border-radius: var(--border-radius) 0 0 var(--border-radius); /* 左側だけ角丸 */
+}
+
+#progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff; /* バーの上では白 */
+    mix-blend-mode: difference; /* 背景色に応じて色反転 */
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+
+#question-container {
+    background-color: var(--secondary-color);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    text-align: left; /* 問題文は左寄せ */
+}
+
+#question-text {
+    font-size: 1.2em;
+    margin: 0;
+}
+
+#answer-buttons {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* ボタン間のスペース */
+}
+
+.answer-btn {
+    flex-grow: 1; /* ボタン幅を均等に */
+    max-width: 150px; /* 最大幅 */
+}
+
+#feedback-container {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: var(--border-radius);
+    text-align: left;
+}
+
+#feedback-result {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#feedback-icon {
+    margin-right: 10px;
+    font-size: 1.5em;
+}
+
+/* 正解・不正解のアニメーション */
+.correct-feedback {
+    color: var(--correct-color);
+    animation: bounceIn 0.5s ease;
+}
+.correct-feedback #feedback-icon::before {
+    content: '✔'; /* 正解マーク */
+}
+.correct-feedback #feedback-explanation {
+    border-left: 5px solid var(--correct-color);
+    padding-left: 15px;
+}
+
+
+.incorrect-feedback {
+    color: var(--incorrect-color);
+    animation: shake 0.5s ease;
+}
+.incorrect-feedback #feedback-icon::before {
+    content: '✖'; /* 不正解マーク */
+}
+.incorrect-feedback #feedback-explanation {
+    border-left: 5px solid var(--incorrect-color);
+    padding-left: 15px;
+}
+
+#feedback-explanation p {
+    margin: 5px 0;
+}
+
+#next-btn {
+    display: block; /* display:none から block へ */
+    margin: 20px auto 0; /* 上にマージン、左右自動で中央寄せ */
+    width: fit-content; /* 中身に合わせた幅 */
+}
+
+#result-screen h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+#score-text {
+    font-size: 1.3em;
+    margin-bottom: 20px;
+}
+
+/* アニメーション定義 */
+@keyframes bounceIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+
+    header h1 {
+        font-size: 1.8em;
+    }
+
+    #start-screen button,
+    #next-btn,
+    #retry-btn,
+    .answer-btn {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+
+     #answer-buttons {
+        flex-direction: column; /* 縦並びに */
+        align-items: stretch; /* 幅を親要素に合わせる */
+    }
+    .answer-btn {
+         max-width: none; /* 最大幅解除 */
+     }
+
+    #question-text {
+        font-size: 1.1em;
+    }
+
+    #feedback-result {
+        font-size: 1.1em;
+    }
+}
