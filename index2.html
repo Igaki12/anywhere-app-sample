@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2024免疫学中間試験 問題集</title>
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body data-screen="start"> <!-- bodyに状態を持たせる -->
+
+    <!-- ハンバーガーボタン -->
+    <button id="hamburger-btn" aria-label="メニューを開く">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- メニューモーダル -->
+    <div id="modal-overlay" class="modal-hidden"></div>
+    <div id="menu-modal" class="modal-hidden" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+        <h2 id="menu-title">メニュー</h2>
+        <div class="menu-content">
+            <p><strong>今日の日付:</strong> <span id="modal-date"></span></p>
+            <p><strong>現在の正解数:</strong> <span id="modal-score">0</span> 問</p>
+            <p><strong>現在の正解率:</strong> <span id="modal-accuracy">--</span> %</p>
+        </div>
+        <button id="back-to-title-btn">タイトルに戻る</button>
+        <button id="close-modal-btn" aria-label="メニューを閉じる">×</button>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>2024免疫学中間試験</h1>
+            <div id="start-screen">
+                <p>問題の表示順を選択してください:</p>
+                <button id="order-btn">順番通りに解く</button>
+                <button id="random-btn">ランダムに解く</button>
+            </div>
+        </header>
+
+        <main id="quiz-screen">
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+                <span id="progress-text"></span>
+            </div>
+            <div id="question-container">
+                <p id="question-text"></p>
+            </div>
+            <div id="answer-buttons">
+                <button class="answer-btn" data-answer="true">正しい</button>
+                <button class="answer-btn" data-answer="false">誤り</button>
+            </div>
+            <div id="feedback-container">
+                <div id="feedback-result">
+                    <span id="feedback-icon"></span>
+                    <span id="feedback-message"></span>
+                </div>
+                <div id="feedback-explanation">
+                    <p><strong>解答:</strong> <span id="correct-answer"></span></p>
+                    <p><strong>解説:</strong></p>
+                    <p id="explanation-text"></p>
+                </div>
+                <button id="next-btn">次の問題へ</button>
+            </div>
+        </main>
+
+        <footer id="result-screen">
+            <h2>結果</h2>
+            <p id="score-text"></p>
+            <button id="retry-btn">もう一度解く</button>
+        </footer>
+    </div>
+
+    <script src="script2.js"></script>
+</body>
+</html>

@@ -242,6 +242,7 @@ body.modal-open {
     height: 100%;
     width: 0%;
     background-color: var(--primary-color);
+    /* background: linear-gradient(to right, var(--primary-color), #357abd); */
     transition: width 0.5s ease-in-out;
     border-radius: var(--border-radius) 0 0 var(--border-radius);
 }

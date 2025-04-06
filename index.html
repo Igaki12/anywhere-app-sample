@@ -4,7 +4,491 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2024免疫学中間試験 問題集</title>
-    <link rel="stylesheet" href="style2.css">
+    <style>
+        /* --- CSS ここから --- */
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f5f5;
+            --correct-color: #4caf50;
+            --incorrect-color: #f44336;
+            --text-color: #333;
+            --light-gray: #e0e0e0;
+            --white: #fff;
+            --black: #000;
+            --overlay-color: rgba(0, 0, 0, 0.6);
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --modal-transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        /* 画面状態による表示制御 */
+        body[data-screen="start"] #quiz-screen,
+        body[data-screen="start"] #result-screen,
+        body[data-screen="quiz"] #start-screen,
+        body[data-screen="quiz"] #result-screen,
+        body[data-screen="result"] #start-screen,
+        body[data-screen="result"] #quiz-screen {
+            display: none;
+        }
+
+        body[data-screen="start"] #start-screen,
+        body[data-screen="quiz"] #quiz-screen,
+        body[data-screen="result"] #result-screen {
+            display: block; /* もしくは flex など適切なもの */
+        }
+
+        /* クイズ画面内の初期非表示要素 */
+        #feedback-container,
+        #next-btn {
+            display: none;
+        }
+
+
+        .container {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+            margin-top: 50px; /* ハンバーガーボタンとの重なりを避ける */
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        /* --- ハンバーガーボタン --- */
+        #hamburger-btn {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            width: 40px;
+            height: 35px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1001; /* モーダルより手前、オーバーレイより手前 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 8px;
+            box-sizing: border-box; /* paddingを含めたサイズ計算 */
+        }
+
+        #hamburger-btn span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background: var(--white);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        /* --- モーダル --- */
+        #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-color);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+
+        #menu-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9); /* 初期状態を少し小さく */
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            width: 90%;
+            max-width: 400px;
+            opacity: 0;
+            transition: var(--modal-transition);
+            text-align: left;
+        }
+
+        #menu-modal h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .menu-content p {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .menu-content strong {
+             color: var(--primary-color);
+         }
+
+
+        #back-to-title-btn,
+        #close-modal-btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            display: block; /* ボタンをブロック要素に */
+            width: 100%; /* 幅を100%に */
+            box-sizing: border-box; /* paddingを含める */
+        }
+        #back-to-title-btn:hover,
+        #close-modal-btn:hover{
+             background-color: #357abd;
+         }
+
+        #close-modal-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            color: var(--light-gray);
+            padding: 0;
+            line-height: 1;
+            width: auto; /* 幅自動調整 */
+            margin-top: 0;
+        }
+        #close-modal-btn:hover {
+             color: var(--text-color);
+         }
+
+
+        /* モーダル表示時のスタイル */
+        .modal-visible {
+            opacity: 1 !important;
+        }
+
+        /* モーダル非表示時のスタイル */
+        .modal-hidden {
+            opacity: 0 !important;
+            pointer-events: none; /* 非表示時はクリックできないように */
+        }
+        #modal-overlay.modal-hidden {
+            pointer-events: none;
+        }
+
+
+        /* 背景スクロール禁止 */
+        body.modal-open {
+            overflow: hidden;
+        }
+
+
+        /* --- Start Screen --- */
+         #start-screen p#total-questions-container { /* 問題数表示用のスタイル */
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+         #start-screen p {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        #start-screen button:not(#resume-btn) { /* resumeボタン以外 */
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            margin: 5px;
+        }
+        #start-screen button:not(#resume-btn):hover { background-color: #357abd; }
+        #start-screen button:not(#resume-btn):active { transform: scale(0.98); }
+
+        /* Resume Section */
+        #resume-section {
+            background-color: var(--secondary-color);
+            border: 1px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        #resume-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        #resume-info p {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        #resume-info span {
+            font-weight: bold;
+        }
+
+        #resume-btn {
+            background-color: var(--correct-color); /* 再開ボタンは緑系に */
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            margin: 15px auto 0; /* 上マージン、中央寄せ */
+            display: block; /* ブロック要素で中央寄せしやすく */
+            width: fit-content;
+        }
+
+        #resume-btn:hover {
+            background-color: #388e3c; /* 少し濃い緑 */
+        }
+        #resume-btn:active { transform: scale(0.98); }
+
+        #resume-section hr {
+            border: none;
+            border-top: 1px solid var(--light-gray);
+            margin: 20px 0 15px; /* 区切り線の下にマージン */
+        }
+
+
+        /* --- Quiz Screen --- */
+        #progress-container {
+            width: 100%;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+            height: 25px;
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-color);
+            transition: width 0.5s ease-in-out;
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+        }
+
+        #progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--white);
+            mix-blend-mode: difference;
+            font-weight: bold;
+            font-size: 0.9em;
+            white-space: nowrap; /* テキストが折り返さないように */
+        }
+
+        #question-container {
+            background-color: var(--secondary-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        #question-text {
+            font-size: 1.2em;
+            margin: 0;
+        }
+
+        #answer-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .answer-btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease, opacity 0.3s ease;
+            margin: 5px;
+            flex-grow: 1;
+            max-width: 150px;
+        }
+        .answer-btn:hover:not(:disabled) { background-color: #357abd; }
+        .answer-btn:active:not(:disabled) { transform: scale(0.98); }
+        .answer-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #feedback-container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: var(--border-radius);
+            text-align: left;
+        }
+
+        #feedback-result {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        #feedback-icon {
+            margin-right: 10px;
+            font-size: 1.5em;
+        }
+
+        .correct-feedback {
+            color: var(--correct-color);
+            animation: bounceIn 0.5s ease;
+        }
+        .correct-feedback #feedback-icon::before { content: '✔'; }
+        .correct-feedback #feedback-explanation {
+            border-left: 5px solid var(--correct-color);
+            padding-left: 15px;
+        }
+
+        .incorrect-feedback {
+            color: var(--incorrect-color);
+            animation: shake 0.5s ease;
+        }
+        .incorrect-feedback #feedback-icon::before { content: '✖'; }
+        .incorrect-feedback #feedback-explanation {
+            border-left: 5px solid var(--incorrect-color);
+            padding-left: 15px;
+        }
+
+        #feedback-explanation p { margin: 5px 0; }
+
+        #next-btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            margin: 20px auto 0;
+            display: block; /* JSで制御 */
+            width: fit-content;
+        }
+        #next-btn:hover { background-color: #357abd; }
+        #next-btn:active { transform: scale(0.98); }
+
+        /* --- Result Screen --- */
+        #result-screen h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        #score-text {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+        }
+
+        #retry-btn {
+             background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            margin: 5px;
+        }
+        #retry-btn:hover { background-color: #357abd; }
+        #retry-btn:active { transform: scale(0.98); }
+
+        /* アニメーション定義 */
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                 margin-top: 60px; /* ハンバーガーボタンとの間隔調整 */
+            }
+
+            header h1 { font-size: 1.6em; }
+
+            #start-screen button,
+            #next-btn,
+            #retry-btn,
+            .answer-btn {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+
+             #answer-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .answer-btn { max-width: none; }
+
+            #question-text { font-size: 1.1em; }
+            #feedback-result { font-size: 1.1em; }
+
+            #hamburger-btn {
+                top: 10px;
+                right: 15px;
+            }
+
+            #menu-modal { padding: 20px; }
+            #menu-modal h2 { font-size: 1.5em; }
+            .menu-content p { font-size: 1em; }
+            #back-to-title-btn { font-size: 0.9em; }
+        }
+        /* --- CSS ここまで --- */
+    </style>
 </head>
 <body data-screen="start"> <!-- bodyに状態を持たせる -->
 
@@ -32,6 +516,19 @@
         <header>
             <h1>2024免疫学中間試験</h1>
             <div id="start-screen">
+                <p id="total-questions-container">全 <span id="total-questions">--</span> 問</p> 
+
+                <!-- 前回の続きセクション (JSで表示制御) -->
+                <div id="resume-section" style="display: none;">
+                    <h3>前回の続き</h3>
+                    <div id="resume-info">
+                        <p>前回保存日時: <span id="resume-time"></span></p>
+                        <p>残り <span id="resume-remaining"></span> 問 ( <span id="resume-current-index"></span> / <span id="resume-total"></span> 問目から)</p> 
+                    </div>
+                    <button id="resume-btn">前回の続きから解く</button>
+                    <hr> 
+                </div>
+
                 <p>問題の表示順を選択してください:</p>
                 <button id="order-btn">順番通りに解く</button>
                 <button id="random-btn">ランダムに解く</button>
@@ -71,6 +568,452 @@
         </footer>
     </div>
 
-    <script src="script2.js"></script>
+    <script>
+        // --- JavaScript ここから ---
+        // --- 問題データ ---
+        const questionBank = [
+            // (1) マクロファージ分類
+            { question: "マクロファージに分類される細胞として、ミクログリアは正しいか？", answer: true, explanation: "ミクログリアは中枢神経系に定住するマクロファージです。" },
+            { question: "マクロファージに分類される細胞として、クッパー細胞は正しいか？", answer: true, explanation: "クッパー細胞は肝臓の類洞に存在するマクロファージです。" },
+            { question: "マクロファージに分類される細胞として、破骨細胞は正しいか？", answer: true, explanation: "破骨細胞は骨組織に存在し、骨吸収を行うマクロファージ由来の多核細胞です。" },
+            { question: "マクロファージに分類される細胞として、ランゲルハンス細胞は正しいか？", answer: false, explanation: "ランゲルハンス細胞は表皮に存在する樹状細胞であり、マクロファージとは区別されます。" },
+            { question: "マクロファージに分類される細胞として、類上皮細胞は正しいか？", answer: true, explanation: "類上皮細胞は肉芽腫などで見られる、マクロファージが形態変化したものです。" },
+            // (2) PPRs/リガンド
+            { question: "PPRsとリガンドの組み合わせとして「TLR2 – ペプチドグリカン」は正しいか？", answer: true, explanation: "TLR2は主にグラム陽性菌のペプチドグリカンやリポタンパク質を認識します。" },
+            { question: "PPRsとリガンドの組み合わせとして「TLR4 – リポポリサッカライド」は正しいか？", answer: true, explanation: "TLR4はグラム陰性菌のLPSをMD-2、CD14と共に認識します。" },
+            { question: "PPRsとリガンドの組み合わせとして「TLR5 – フラジェリン」は正しいか？", answer: true, explanation: "TLR5は細菌の鞭毛タンパク質であるフラジェリンを認識します。" },
+            { question: "PPRsとリガンドの組み合わせとして「TLR9 – 非メチル化 CpG」は正しいか？", answer: true, explanation: "TLR9はエンドソーム内で細菌やウイルスのDNAに特徴的な非メチル化CpG配列を認識します。" },
+            { question: "PPRsとリガンドの組み合わせとして「RIG-I – ウイルス RNA」は正しいか？", answer: true, explanation: "RIG-Iは細胞質に存在し、主に5'三リン酸を持つウイルス由来RNAを認識します。" },
+            // (3) Treg抑制因子
+            { question: "制御性T細胞(Treg)の免疫反応抑制因子として、CD25(IL-2Rα)は正しいか？", answer: true, explanation: "CD25はTregのマーカーであり、IL-2を消費することで他のT細胞の増殖を抑制します。" },
+            { question: "制御性T細胞(Treg)の免疫反応抑制因子として、CD80は正しいか？", answer: false, explanation: "CD80は抗原提示細胞上の共刺激分子です。Tregが抑制に利用する分子はCTLA-4やTGF-βなどです。" },
+            { question: "制御性T細胞(Treg)の免疫反応抑制因子として、CTLA-4は正しいか？", answer: true, explanation: "CTLA-4はTregに高発現し、CD80/CD86との結合をCD28と競合して共刺激を抑制します。" },
+            { question: "制御性T細胞(Treg)の免疫反応抑制因子として、IL-8は正しいか？", answer: false, explanation: "IL-8 (CXCL8) は好中球を遊走させるケモカインであり、Tregの抑制機能とは直接関係ありません。" },
+            { question: "制御性T細胞(Treg)の免疫反応抑制因子として、TGF-βは正しいか？", answer: true, explanation: "TGF-βはTregが産生・分泌する主要な抑制性サイトカインの一つです。" },
+            // (4) T細胞分化
+            { question: "胸腺におけるT細胞分化について、「正の選択とは自己抗原と適度に反応するT細胞を残すことである」は正しいか？", answer: true, explanation: "正の選択では、自己MHC分子と適度に結合できるTCRを持つT細胞が生存シグナルを受け取ります（自己MHC拘束性）。" },
+            { question: "胸腺におけるT細胞分化について、「負の選択とは自己抗原と過剰に反応するT細胞を排除することである」は正しいか？", answer: true, explanation: "負の選択では、自己抗原ペプチド/MHC複合体に強く結合しすぎる自己反応性T細胞がアポトーシスにより除去されます。" },
+            { question: "胸腺におけるT細胞分化について、「正の選択は胸腺皮質、負の選択は胸腺髄質でおこる」は正しいか？", answer: true, explanation: "正の選択は主に胸腺皮質上皮細胞(cTEC)が、負の選択は主に胸腺髄質上皮細胞(mTEC)や樹状細胞が担います。" },
+            { question: "胸腺におけるT細胞分化について、「核内タンパク AIRE は種々の自己抗原を産生し、負の選択に寄与する」は正しいか？", answer: true, explanation: "AIREはmTECで末梢組織特異的抗原の発現を誘導し、それらに反応するT細胞の負の選択を促進します。" },
+            { question: "胸腺におけるT細胞分化について、「CD8+T 細胞は CD4-CD8-T → CD4+CD8+T → CD8+T 細胞の経過をたどる」は正しいか？", answer: true, explanation: "T細胞はDN(ダブルネガティブ)→DP(ダブルポジティブ)→SP(シングルポジティブ、CD4+またはCD8+)へと分化します。" },
+             // (5) 気管支喘息
+            { question: "気管支喘息の特徴として、「近年の患者数増加の理由の仮説に抗原仮説がある」は正しいか？", answer: false, explanation: "患者数増加の理由としては「衛生仮説」が広く知られています。「抗原仮説」は一般的な用語ではありません。" },
+            { question: "気管支喘息の特徴として、「患者肺組織では平滑筋の増生と粘液の枯渇が見られる」は正しいか？", answer: false, explanation: "喘息では、平滑筋の増生・肥厚と、杯細胞過形成による粘液産生亢進（枯渇ではない）が見られます。" },
+            { question: "気管支喘息の特徴として、「IL-4によるB細胞のIgAへのクラススイッチが関与する」は正しいか？", answer: false, explanation: "IL-4はB細胞のIgEへのクラススイッチを誘導し、これが喘息の病態に重要です。IgAではありません。" },
+            { question: "気管支喘息の特徴として、「IL-5による好中球の活性化が見られる」は正しいか？", answer: false, explanation: "IL-5は好酸球の分化、増殖、活性化、動員に重要です。好中球ではありません。" },
+            { question: "気管支喘息の特徴として、「IL-13による気道過敏性の低下が見られる」は正しいか？", answer: false, explanation: "IL-13は気道過敏性の亢進、粘液産生亢進、IgE産生に関与します。低下ではありません。" }
+        ];
+
+
+        // --- DOM要素 ---
+        const body = document.body;
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const orderBtn = document.getElementById('order-btn');
+        const randomBtn = document.getElementById('random-btn');
+        const questionText = document.getElementById('question-text');
+        const answerButtons = document.getElementById('answer-buttons');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const feedbackResult = document.getElementById('feedback-result');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const correctAnswerEl = document.getElementById('correct-answer');
+        const explanationText = document.getElementById('explanation-text');
+        const nextBtn = document.getElementById('next-btn');
+        const scoreText = document.getElementById('score-text');
+        const retryBtn = document.getElementById('retry-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        // モーダル関連DOM
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const menuModal = document.getElementById('menu-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const backToTitleBtn = document.getElementById('back-to-title-btn');
+        const modalDate = document.getElementById('modal-date');
+        const modalScore = document.getElementById('modal-score');
+        const modalAccuracy = document.getElementById('modal-accuracy');
+
+        // Resume関連DOM
+        const totalQuestionsEl = document.getElementById('total-questions'); // 問題数表示用
+        const resumeSection = document.getElementById('resume-section');
+        const resumeInfo = document.getElementById('resume-info');
+        const resumeTime = document.getElementById('resume-time');
+        const resumeRemaining = document.getElementById('resume-remaining');
+        const resumeCurrentIndex = document.getElementById('resume-current-index');
+        const resumeTotal = document.getElementById('resume-total');
+        const resumeBtn = document.getElementById('resume-btn');
+
+        // --- localStorage Key ---
+        const STORAGE_KEY = 'quizImmunologyProgress2024'; // アプリ固有のキー名
+
+        // --- 状態変数 ---
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questionsAnswered = false;
+
+        // --- 関数 ---
+
+        // 画面状態を更新
+        function setScreen(screenName) {
+            body.dataset.screen = screenName;
+        }
+
+        // 問題をシャッフル
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- localStorage 操作 ---
+        // 途中経過を保存
+        function saveProgress() {
+            if (body.dataset.screen !== 'quiz') return; // クイズ画面以外では保存しない
+            if (currentQuestions.length === 0) return;
+
+            const progress = {
+                currentQuestions: currentQuestions,
+                currentQuestionIndex: currentQuestionIndex,
+                score: score,
+                startTime: localStorage.getItem(STORAGE_KEY) ? JSON.parse(localStorage.getItem(STORAGE_KEY)).startTime : new Date().toISOString(),
+                lastSavedTime: new Date().toISOString()
+            };
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+                console.log("進捗を保存しました:", progress);
+            } catch (e) {
+                console.error("localStorageへの保存に失敗しました:", e);
+            }
+        }
+
+        // 途中経過を読み込み、UIに反映
+        function loadProgress() {
+            try {
+                const savedData = localStorage.getItem(STORAGE_KEY);
+                if (savedData) {
+                    const progress = JSON.parse(savedData);
+                     // 保存データの有効性チェック（最低限）
+                    if (!progress.currentQuestions || !progress.currentQuestions.length || progress.currentQuestionIndex === undefined || progress.score === undefined) {
+                        console.warn("保存されたデータが無効か不完全です。データを削除します。");
+                        clearProgress();
+                        return null;
+                    }
+                    console.log("保存された進捗を読み込みました:", progress);
+
+                    // UI更新
+                    const total = progress.currentQuestions.length;
+                    const currentIndex = progress.currentQuestionIndex; // 保存されている次の問題のインデックス
+                    const remaining = total - currentIndex;
+                    const lastSavedDate = new Date(progress.lastSavedTime);
+
+                    resumeTime.textContent = lastSavedDate.toLocaleString('ja-JP');
+                    resumeRemaining.textContent = remaining;
+                    resumeCurrentIndex.textContent = currentIndex + 1; // 表示は1から始まる問題番号
+                    resumeTotal.textContent = total;
+                    resumeSection.style.display = 'block';
+                    return progress;
+                } else {
+                    resumeSection.style.display = 'none';
+                    return null;
+                }
+            } catch (e) {
+                console.error("localStorageからの読み込みに失敗しました:", e);
+                resumeSection.style.display = 'none';
+                localStorage.removeItem(STORAGE_KEY);
+                return null;
+            }
+        }
+
+        // 途中経過を削除
+        function clearProgress() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+                console.log("進捗を削除しました。");
+                resumeSection.style.display = 'none'; // UIも非表示に
+            } catch (e) {
+                console.error("localStorageからの削除に失敗しました:", e);
+            }
+        }
+
+        // 保存されたデータからクイズを再開
+        function resumeQuiz() {
+            const progress = loadProgress();
+            if (progress) {
+                 // currentQuestionIndexは「次に表示する問題のインデックス」なので、そのまま使う
+                if (progress.currentQuestionIndex >= progress.currentQuestions.length) {
+                     console.warn("保存されたデータは既に完了済みのようです。");
+                     clearProgress();
+                     showStartScreen();
+                     return;
+                 }
+
+                currentQuestions = progress.currentQuestions;
+                currentQuestionIndex = progress.currentQuestionIndex;
+                score = progress.score;
+                updateModalStats();
+                setScreen('quiz');
+                displayQuestion();
+            } else {
+                alert("再開できるデータが見つかりませんでした。");
+                showStartScreen();
+            }
+        }
+
+
+        // --- クイズ進行関数 (saveProgress, clearProgress呼び出し追加) ---
+
+        // スタート画面表示
+        function showStartScreen() {
+            setScreen('start');
+            totalQuestionsEl.textContent = questionBank.length;
+            loadProgress();
+            closeModal();
+             // スコアとインデックスをリセット（新規開始用）
+            currentQuestionIndex = 0;
+            score = 0;
+            currentQuestions = []; // 問題リストもクリア
+            updateModalStats(); // モーダルもリセット状態に
+        }
+
+        // クイズを開始 (新規)
+        function startQuiz(ordered) {
+            clearProgress();
+            currentQuestionIndex = 0;
+            score = 0;
+            updateModalStats();
+            if (ordered) {
+                currentQuestions = [...questionBank];
+            } else {
+                currentQuestions = shuffleArray([...questionBank]);
+            }
+            setScreen('quiz');
+            saveProgress(); // 開始状態を保存 (startTimeも記録される)
+            displayQuestion();
+        }
+
+        // 問題を表示
+        function displayQuestion() {
+            questionsAnswered = false;
+            feedbackContainer.style.display = 'none';
+            nextBtn.style.display = 'none';
+            enableAnswerButtons();
+
+            if (currentQuestionIndex < currentQuestions.length) {
+                const questionData = currentQuestions[currentQuestionIndex];
+                questionText.textContent = `Q${currentQuestionIndex + 1}: ${questionData.question}`;
+                updateProgressBar();
+            } else {
+                 // 通常ここには来ないはず (nextQuestionで制御)
+                 console.warn("不正なインデックスでdisplayQuestionが呼ばれました。結果画面に遷移します。");
+                 showResults();
+            }
+        }
+
+        // プログレスバー更新
+        function updateProgressBar() {
+            // currentQuestions が空の場合のエラー回避
+            if (currentQuestions.length === 0) {
+                progressBar.style.width = '0%';
+                progressText.textContent = `0 / 0`;
+                return;
+            }
+            const progress = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${currentQuestionIndex + 1} / ${currentQuestions.length}`;
+        }
+
+
+        // 回答ボタン有効化
+        function enableAnswerButtons() {
+            const buttons = answerButtons.querySelectorAll('.answer-btn');
+            buttons.forEach(button => button.disabled = false);
+        }
+
+        // 回答ボタン無効化
+        function disableAnswerButtons() {
+             const buttons = answerButtons.querySelectorAll('.answer-btn');
+            buttons.forEach(button => button.disabled = true);
+        }
+
+
+        // 回答をチェック
+        function checkAnswer(selectedAnswer) {
+            if (questionsAnswered) return;
+            questionsAnswered = true;
+            disableAnswerButtons();
+
+            const questionData = currentQuestions[currentQuestionIndex];
+            const isCorrect = selectedAnswer === questionData.answer;
+
+            feedbackContainer.style.display = 'block';
+            feedbackResult.classList.remove('correct-feedback', 'incorrect-feedback');
+
+            if (isCorrect) {
+                score++; // 正解ならスコア加算
+                feedbackResult.classList.add('correct-feedback');
+                feedbackMessage.textContent = "正解！";
+            } else {
+                feedbackResult.classList.add('incorrect-feedback');
+                feedbackMessage.textContent = "不正解...";
+            }
+
+            correctAnswerEl.textContent = questionData.answer ? "正しい" : "誤り";
+            explanationText.textContent = questionData.explanation;
+
+            updateModalStats(); // モーダル情報を更新
+
+            // 次へボタン表示 (この段階ではまだ進捗保存しない)
+            nextBtn.style.display = 'block';
+            if (currentQuestionIndex === currentQuestions.length - 1) {
+                nextBtn.textContent = '結果を見る';
+            } else {
+                nextBtn.textContent = '次の問題へ';
+            }
+        }
+
+        // 次の問題へ
+        function nextQuestion() {
+             // 現在の問題インデックスをインクリメント
+            currentQuestionIndex++;
+
+            // 次の問題があるかチェック
+            if (currentQuestionIndex < currentQuestions.length) {
+                 saveProgress(); // 次の問題に進む直前に保存
+                 displayQuestion();
+             } else {
+                 // 最後の問題だったので結果表示
+                 showResults();
+             }
+        }
+
+        // 結果を表示
+        function showResults() {
+            setScreen('result');
+            const percentage = currentQuestions.length > 0 ? Math.round((score / currentQuestions.length) * 100) : 0;
+            scoreText.textContent = `あなたのスコア: ${score} / ${currentQuestions.length} (${percentage}%)`;
+            updateModalStats();
+            clearProgress(); // クイズ完了なのでデータを削除
+        }
+
+
+        // --- モーダル関連関数 ---
+
+        // モーダルを開く
+        function openModal() {
+            updateModalStats();
+            modalOverlay.classList.remove('modal-hidden');
+            menuModal.classList.remove('modal-hidden');
+            modalOverlay.classList.add('modal-visible');
+            menuModal.classList.add('modal-visible');
+            body.classList.add('modal-open');
+        }
+
+        // モーダルを閉じる
+        function closeModal() {
+            modalOverlay.classList.remove('modal-visible');
+            menuModal.classList.remove('modal-visible');
+            modalOverlay.classList.add('modal-hidden');
+            menuModal.classList.add('modal-hidden');
+            body.classList.remove('modal-open');
+        }
+
+        // モーダル内の統計情報を更新
+        function updateModalStats() {
+            const today = new Date();
+            modalDate.textContent = today.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+            modalScore.textContent = score;
+
+            // 正解率計算ロジックを修正
+            let questionsAttempted = 0;
+            if (body.dataset.screen === 'quiz') {
+                 // クイズ中は、現在の問題インデックスが解答済み問題数を示す
+                 // (ただし、checkAnswerが呼ばれた直後はまだインデックスは増えていない)
+                 // questionsAnsweredフラグで判断するのがより正確
+                 questionsAttempted = currentQuestionIndex + (questionsAnswered ? 1 : 0);
+                 // もし問題0から始めているなら currentQuestionIndex が解答済み数
+                 questionsAttempted = currentQuestionIndex;
+                 if(questionsAnswered && currentQuestionIndex < currentQuestions.length) {
+                     questionsAttempted++; // 今まさに解答した問題を加算
+                 }
+
+            } else if (body.dataset.screen === 'result') {
+                 // 結果画面では全問題数が解答済み数
+                 questionsAttempted = currentQuestions.length;
+            } else {
+                 // スタート画面など
+                 questionsAttempted = 0; // まだ解答していない
+                 // もし再開データがあれば、そこから計算することも可能だが、シンプルに0とする
+                 const progress = loadProgress(); // 毎回読むのは非効率だが、簡易的に
+                 if (progress){
+                     questionsAttempted = progress.currentQuestionIndex; // 保存されている=解答済みの数
+                 }
+            }
+
+
+            if (questionsAttempted > 0 && currentQuestions && currentQuestions.length > 0) {
+                 // 正解率の計算 (分母が0でないことを確認)
+                 let denominator = questionsAttempted;
+                 // 結果画面では分母は全問題数
+                 if(body.dataset.screen === 'result'){
+                     denominator = currentQuestions.length;
+                 }
+                 // 分母が0以下にならないようにガード
+                 if (denominator <= 0) denominator = 1; // 0除算回避 (本来は起こらないはず)
+
+                 const accuracy = Math.round((score / denominator) * 100);
+                 modalAccuracy.textContent = accuracy;
+            } else {
+                 modalAccuracy.textContent = "--";
+            }
+        }
+
+
+        // --- イベントリスナー ---
+        orderBtn.addEventListener('click', () => startQuiz(true));
+        randomBtn.addEventListener('click', () => startQuiz(false));
+        resumeBtn.addEventListener('click', resumeQuiz);
+
+        answerButtons.addEventListener('click', (event) => {
+            if (event.target.classList.contains('answer-btn')) {
+                const selectedAnswer = event.target.dataset.answer === 'true';
+                checkAnswer(selectedAnswer);
+            }
+        });
+
+        nextBtn.addEventListener('click', nextQuestion);
+        retryBtn.addEventListener('click', showStartScreen);
+
+        // モーダル関連イベントリスナー
+        hamburgerBtn.addEventListener('click', openModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+        backToTitleBtn.addEventListener('click', () => {
+             // タイトルに戻る際に途中経過をどうするか？
+             // 確認ダイアログを出すのが親切かも
+             if (body.dataset.screen === 'quiz') { // クイズ中の場合のみ確認
+                if (confirm("クイズを中断してタイトルに戻りますか？\n(現在の進捗は保存されます)")) {
+                    // saveProgress(); // 中断時にも保存 (nextQuestion前ならここで保存が必要)
+                    showStartScreen();
+                }
+             } else {
+                 showStartScreen(); // クイズ中以外はそのまま戻る
+             }
+        });
+
+        // ウィンドウを閉じる・リロードする直前に保存する（確実ではないが良い試み）
+        window.addEventListener('beforeunload', saveProgress);
+
+
+        // --- 初期化 ---
+        showStartScreen(); // 最初にスタート画面を表示し、保存データをチェック
+
+        // --- JavaScript ここまで ---
+    </script>
 </body>
 </html>
