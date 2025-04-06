@@ -1,0 +1,433 @@
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #f5f5f5;
+    --correct-color: #4caf50;
+    --incorrect-color: #f44336;
+    --text-color: #333;
+    --light-gray: #e0e0e0;
+    --white: #fff;
+    --black: #000;
+    --overlay-color: rgba(0, 0, 0, 0.6);
+    --border-radius: 8px;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --modal-transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+/* 画面状態による表示制御 */
+body[data-screen="start"] #quiz-screen,
+body[data-screen="start"] #result-screen,
+body[data-screen="quiz"] #start-screen,
+body[data-screen="quiz"] #result-screen,
+body[data-screen="result"] #start-screen,
+body[data-screen="result"] #quiz-screen {
+    display: none;
+}
+
+body[data-screen="start"] #start-screen,
+body[data-screen="quiz"] #quiz-screen,
+body[data-screen="result"] #result-screen {
+    display: block; /* もしくは flex など適切なもの */
+}
+
+/* クイズ画面内の初期非表示要素 */
+#feedback-container,
+#next-btn {
+    display: none;
+}
+
+
+.container {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+    margin-top: 50px; /* ハンバーガーボタンとの重なりを避ける */
+}
+
+header h1 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+/* --- ハンバーガーボタン --- */
+#hamburger-btn {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    width: 40px;
+    height: 35px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1001; /* モーダルより手前、オーバーレイより手前 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 8px;
+    box-sizing: border-box; /* paddingを含めたサイズ計算 */
+}
+
+#hamburger-btn span {
+    display: block;
+    width: 100%;
+    height: 3px;
+    background: var(--white);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+/* ハンバーガーメニューが開いているときのスタイル（必要ならJSでクラス付与） */
+/*
+body.modal-open #hamburger-btn span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+body.modal-open #hamburger-btn span:nth-child(2) { opacity: 0; }
+body.modal-open #hamburger-btn span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+*/
+
+/* --- モーダル --- */
+#modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--overlay-color);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+#menu-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9); /* 初期状態を少し小さく */
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    width: 90%;
+    max-width: 400px;
+    opacity: 0;
+    transition: var(--modal-transition);
+    text-align: left;
+}
+
+#menu-modal h2 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.menu-content p {
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+.menu-content strong {
+     color: var(--primary-color);
+ }
+
+
+#back-to-title-btn,
+#close-modal-btn {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+    display: block; /* ボタンをブロック要素に */
+    width: 100%; /* 幅を100%に */
+    box-sizing: border-box; /* paddingを含める */
+}
+#back-to-title-btn:hover,
+#close-modal-btn:hover{
+     background-color: #357abd;
+ }
+
+#close-modal-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: var(--light-gray);
+    padding: 0;
+    line-height: 1;
+    width: auto; /* 幅自動調整 */
+    margin-top: 0;
+}
+#close-modal-btn:hover {
+     color: var(--text-color);
+ }
+
+
+/* モーダル表示時のスタイル */
+.modal-visible {
+    opacity: 1 !important;
+    /* transform: translate(-50%, -50%) scale(1) !important; */
+}
+
+/* モーダル非表示時のスタイル */
+.modal-hidden {
+    opacity: 0 !important;
+    pointer-events: none; /* 非表示時はクリックできないように */
+}
+#modal-overlay.modal-hidden {
+    pointer-events: none;
+}
+
+
+/* 背景スクロール禁止 */
+body.modal-open {
+    overflow: hidden;
+}
+
+
+/* --- Start Screen --- */
+#start-screen p {
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+#start-screen button {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    margin: 5px;
+}
+#start-screen button:hover { background-color: #357abd; }
+#start-screen button:active { transform: scale(0.98); }
+
+
+/* --- Quiz Screen --- */
+#progress-container {
+    width: 100%;
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+    position: relative;
+    height: 25px;
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--primary-color);
+    transition: width 0.5s ease-in-out;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+}
+
+#progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--white);
+    mix-blend-mode: difference;
+    font-weight: bold;
+    font-size: 0.9em;
+    white-space: nowrap; /* テキストが折り返さないように */
+}
+
+#question-container {
+    background-color: var(--secondary-color);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+#question-text {
+    font-size: 1.2em;
+    margin: 0;
+}
+
+#answer-buttons {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.answer-btn {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease, opacity 0.3s ease;
+    margin: 5px;
+    flex-grow: 1;
+    max-width: 150px;
+}
+.answer-btn:hover:not(:disabled) { background-color: #357abd; }
+.answer-btn:active:not(:disabled) { transform: scale(0.98); }
+.answer-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#feedback-container {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: var(--border-radius);
+    text-align: left;
+}
+
+#feedback-result {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#feedback-icon {
+    margin-right: 10px;
+    font-size: 1.5em;
+}
+
+.correct-feedback {
+    color: var(--correct-color);
+    animation: bounceIn 0.5s ease;
+}
+.correct-feedback #feedback-icon::before { content: '✔'; }
+.correct-feedback #feedback-explanation {
+    border-left: 5px solid var(--correct-color);
+    padding-left: 15px;
+}
+
+.incorrect-feedback {
+    color: var(--incorrect-color);
+    animation: shake 0.5s ease;
+}
+.incorrect-feedback #feedback-icon::before { content: '✖'; }
+.incorrect-feedback #feedback-explanation {
+    border-left: 5px solid var(--incorrect-color);
+    padding-left: 15px;
+}
+
+#feedback-explanation p { margin: 5px 0; }
+
+#next-btn {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    margin: 20px auto 0;
+    display: block; /* JSで制御 */
+    width: fit-content;
+}
+#next-btn:hover { background-color: #357abd; }
+#next-btn:active { transform: scale(0.98); }
+
+/* --- Result Screen --- */
+#result-screen h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+#score-text {
+    font-size: 1.3em;
+    margin-bottom: 20px;
+}
+
+#retry-btn {
+     background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    margin: 5px;
+}
+#retry-btn:hover { background-color: #357abd; }
+#retry-btn:active { transform: scale(0.98); }
+
+/* アニメーション定義 */
+@keyframes bounceIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+         margin-top: 60px; /* ハンバーガーボタンとの間隔調整 */
+    }
+
+    header h1 { font-size: 1.6em; }
+
+    #start-screen button,
+    #next-btn,
+    #retry-btn,
+    .answer-btn {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+
+     #answer-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .answer-btn { max-width: none; }
+
+    #question-text { font-size: 1.1em; }
+    #feedback-result { font-size: 1.1em; }
+
+    #hamburger-btn {
+        top: 10px;
+        right: 15px;
+    }
+
+    #menu-modal { padding: 20px; }
+    #menu-modal h2 { font-size: 1.5em; }
+    .menu-content p { font-size: 1em; }
+    #back-to-title-btn { font-size: 0.9em; }
+}
